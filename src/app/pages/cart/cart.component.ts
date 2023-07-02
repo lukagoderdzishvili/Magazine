@@ -1,4 +1,6 @@
+import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
+import { loadStripe } from '@stripe/stripe-js';
 import { Cart, CartItem } from 'src/app/models/cart.mode';
 import { CartService } from 'src/app/services/cart.service';
 
@@ -33,7 +35,7 @@ export class CartComponent implements OnInit {
     'action'
   ];
 
-  constructor(private cartSetvice: CartService){
+  constructor(private cartSetvice: CartService, private http: HttpClient){
 
   }
 
@@ -62,5 +64,18 @@ export class CartComponent implements OnInit {
 
   public onRemoveQuantity(item: CartItem): void{
     this.cartSetvice.removeQuantity(item);
+  }
+
+  public onCheckout(): void {
+    this.http
+      .post('http://localhost:4242/checkout', {
+        items: this.cart.items,
+      })
+      .subscribe(async (res: any) => {
+        let stripe = await loadStripe('KEYY');
+        stripe?.redirectToCheckout({
+          sessionId: res.id,
+        });
+      });
   }
 }
